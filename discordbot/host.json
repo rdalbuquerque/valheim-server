@@ -1,0 +1,33 @@
+{
+  "version": "2.0",
+  "extensions": {
+    "queues": {
+      "batchSize": 16,
+      "maxDequeueCount": 5,
+      "newBatchThreshold": 8,
+      "visibilityTimeout": "00:00:02"
+    }
+  },
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "initialSamplingPercentage": 100,
+        "maxSamplingPercentage":100,
+        "minSamplingPercentage": 100
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "customHandler": {
+    "enableForwardingHttpRequest": true,
+    "description": {
+      "defaultExecutablePath": "godin",
+      "workingDirectory": "",
+      "arguments": []
+    }
+  }
+}

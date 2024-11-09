@@ -1,0 +1,37 @@
+{
+  "version": "2.0",
+  "extensions": {
+    "queues": {
+      "batchSize": 16,
+      "maxDequeueCount": 5,
+      "newBatchThreshold": 8,
+      "visibilityTimeout": "00:00:02"
+    }
+  },
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  },
+  "extensionBundle": {
+    "id": "Microsoft.Azure.Functions.ExtensionBundle",
+    "version": "[4.*, 5.0.0)"
+  },
+  "customHandler": {
+    "description": {
+      "defaultExecutablePath": "dlv",
+      "arguments": [
+        "exec",
+        "./debuggodin.exe",
+        "--headless",
+        "--listen=:2345",
+        "--api-version=2",
+        "--accept-multiclient"
+      ]
+    },
+    "enableForwardingHttpRequest": true
+  }
+}

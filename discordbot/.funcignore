@@ -1,0 +1,11 @@
+.vscode
+cmd
+pkg
+scripts
+.env
+go.mod
+go.sum
+host.debug.json
+local.settings.json
+Makefile
+register_commands.sh

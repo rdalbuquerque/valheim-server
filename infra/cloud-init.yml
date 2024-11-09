@@ -1,0 +1,96 @@
+#cloud-config
+write_files:
+  - path: /usr/local/bin/check_valheim_server.sh
+    permissions: '0755'
+    owner: root:root
+    content: |
+        #!/bin/bash
+
+        # Configuration
+        LOGFILE="/var/log/valheim_server_check.log"
+        PATTERNS=("Server is now listening" "Got connection SteamID" "Closing socket")
+        EVENT_LOG="/tmp/sent_events.log"
+
+        # Ensure the event log exists
+        touch "$EVENT_LOG"
+
+        # Function to send events
+        function send_event {
+            local MESSAGE="$1"
+
+            # Fetch the access token
+            ACCESS_TOKEN=$(curl -s -H "Metadata: true" "http://169.254.169.254/metadata/identity/oauth2/token?resource=https://storage.azure.com/&api-version=2018-02-01" | jq -r .access_token)
+
+            # Base64 encode the message
+            BASE64_MESSAGE=$(echo -n "$MESSAGE" | base64)
+
+            # Send the message to the Azure Queue
+            logger -t valheim_server_check "Sending event: $MESSAGE"
+            curl -s -X POST "https://${events_storage_account_name}.queue.core.windows.net/${events_queue_name}/messages?timeout=60" \
+                -H "Authorization: Bearer $ACCESS_TOKEN" \
+                -H "x-ms-version: 2018-03-28" \
+                -H "Content-Type: application/xml" \
+                --data "<QueueMessage><MessageText>$BASE64_MESSAGE</MessageText></QueueMessage>"
+            logger -t valheim_server_check "Event sent"
+        }
+
+        publicip=$(curl -H "Metadata:true" "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2021-05-01&format=text")
+        if [ -z "$publicip" ]; then
+            logger -t valheim_server_check "Public IP not found"
+            exit 1
+        fi
+        send_event "$publicip"
+
+        # Monitor the log file
+        docker logs -f valheim-server | while read -r LINE; do
+            for PATTERN in "$${PATTERNS[@]}"; do
+                if echo "$LINE" | grep -q "$PATTERN"; then
+                    logger -t valheim_server_check "Event: $LINE"
+                    # Generate a unique identifier for the event
+                    EVENT_ID=$(echo "$LINE" | md5sum | awk '{print $1}')
+
+                    # Check if the event has already been processed
+                    if ! grep -q "$EVENT_ID" "$EVENT_LOG"; then
+                        # Send your event
+                        send_event "$LINE"
+
+                        # Record the event ID to prevent duplicates
+                        echo "$EVENT_ID" >> "$EVENT_LOG"
+                    fi
+
+                    # Break to prevent matching the same line with multiple patterns
+                    break
+                fi
+            done
+        done
+
+
+package_update: true
+package_upgrade: true
+packages:
+  - docker.io
+  - cifs-utils
+  - jq
+
+runcmd:
+  # enable and start docker, and run valheim container
+  - systemctl enable docker
+  - systemctl start docker
+  - mkdir -p /mnt/valheim/world
+  - echo "//${valheim_worlds_storage_account_name}.file.core.windows.net/${world_share_name} /mnt/valheim/world cifs vers=3.0,username=${valheim_worlds_storage_account_name},password=${valheim_worlds_storage_account_key},dir_mode=0777,file_mode=0777,serverino" >> /etc/fstab
+  - mount -a
+  - | 
+    docker run -d \
+    --name valheim-server \
+    --cap-add=sys_nice \
+    --stop-timeout 120 \
+    -p 2456:2456/udp \
+    -p 2457:2457/udp \
+    -p 2458:2458/udp \
+    -v /mnt/valheim/world:/config \
+    -e SERVER_NAME=${server_name} \
+    -e WORLD_NAME=${world_name} \
+    -e SERVER_PASS=${server_pass} \
+    lloesche/valheim-server
+  - chmod +x /usr/local/bin/check_valheim_server.sh
+  - nohup /usr/local/bin/check_valheim_server.sh > /var/log/check_valheim_server.log 2>&1 &

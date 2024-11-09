@@ -1,0 +1,27 @@
+
+# Azure Functions artifacts
+bin
+obj
+appsettings.json
+local.settings.json
+
+# Azurite artifacts
+__blobstorage__
+__queuestorage__
+__azurite_db*__.json
+
+.env
+register_commands.sh
+
+**/__debug*
+debuggodin.exe
+*.pem
+*tfstate*
+*.auto.tfvars.json
+.terraform
+send-messages.sh
+*.key
+*.pem
+*.pub
+
+discordbot/godin
