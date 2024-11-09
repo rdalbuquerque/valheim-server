@@ -31,11 +31,10 @@ The second part of the solution is monitoring the Valheim game server logs to re
 
 and possibly others
 
-For this, I wrote a [script in cloud-init.yml](infra/cloud-init.yml) that monitors valheim container logs and whenever there is a log line matching one of the patterns I'm looking for, put that log line as-is in the `events` queue.\
+For this, I wrote a [script in cloud-init.yml](infra/cloud-init.yml) that monitors valheim container logs and whenever there is a log line matching one of the patterns I'm looking for, put that log line as-is in the `events` queue.
 
 ```mermaid
 flowchart LR;
-    PublicIP --> EventsQueue
     Listening --> EventsQueue
     PlayerConnected --> EventsQueue
     PlayerDisconnected --> EventsQueue
@@ -43,6 +42,6 @@ flowchart LR;
     reactionsFunction --> discord
 ```
 
-Last but not least, I also needed a place to persist server state, so I chose table storage. So currently there are three attributes that I keep track of, `ip`, `online_players` and `status`.
+Last but not least, I also needed a place to persist server state, so I chose table storage. Currently there are three attributes being persisted, `ip`, `online_players` and `status`.
 
 One thing that is worth mentioning is that, as Azure functions can execute in parallel, optimistic concurrency control with `ETags` was used. So if more than one event is processed at the same time, whoever writes first wins, the others will just fail. The retry is builtin with the dequeue counter on the queue message. I also increased the retry interval by increasing the `visibilityTimeout` property in the queue config so the functions can have enough time and tries to reconcile the state.
