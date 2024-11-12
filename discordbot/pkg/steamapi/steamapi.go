@@ -46,7 +46,7 @@ func (c Client) GetUserRealName(action string) (string, error) {
 		return "", err
 	}
 
-	req.Header.Add("x-webapi-key", c.apiKey)
+	req.Header.Add("X-Webapi-Key", c.apiKey)
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err

@@ -14,10 +14,17 @@ func TestGetUsername(t *testing.T) {
 		t.Errorf("error loading environment variables: %v", err)
 	}
 	apikey := os.Getenv("STEAM_API_KEY")
+	log.Printf("apikey is %s", apikey)
 	client := NewClient(apikey)
-	player, err := client.GetUserRealName("76561198073103840")
+	connectedplayer, err := client.GetUserRealName("Got connection SteamID 76561198073103840")
 	if err != nil {
 		t.Errorf("error getting player username: %v", err)
 	}
-	log.Printf("Player is %s", player)
+	log.Printf("Player is %s", connectedplayer)
+
+	disconnectedplayer, err := client.GetUserRealName("Got connection SteamID 76561198073103840")
+	if err != nil {
+		t.Errorf("error getting player username: %v", err)
+	}
+	log.Printf("Player is %s", disconnectedplayer)
 }

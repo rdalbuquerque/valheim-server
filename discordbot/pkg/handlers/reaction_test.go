@@ -116,7 +116,7 @@ func (tvc *TestVmssClient) ScaleDown() error {
 type TestTableClient struct{}
 
 func (ttc TestTableClient) Read(columns ...string) (map[string]interface{}, error) {
-	contentBytes, err := os.ReadFile(os.TempDir() + "\\testvalheimstate.json")
+	contentBytes, err := os.ReadFile("testvalheimstate.json")
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +134,7 @@ func (ttc TestTableClient) Read(columns ...string) (map[string]interface{}, erro
 }
 
 func (ttc TestTableClient) Write(state statestorageinterface.StateAttributes) error {
-	tmpdir := os.TempDir()
-	statefile := tmpdir + "\\testvalheimstate.json"
+	statefile := "testvalheimstate.json"
 	statebytes, err := json.Marshal(&state)
 	if err != nil {
 		return err
@@ -264,6 +263,7 @@ func TestHandleAction(t *testing.T) {
 		disclient := TestDiscordClient{}
 		setState(tc.InitialStateJson)
 		testState := NewTestState(storage)
+		testState.Load()
 		validationState := NewTestState(storage)
 		ah := newActionHandler(&disclient, &vmssclient, steamclient, testState)
 		err := ah.handleAction(tc.Action)
@@ -286,5 +286,5 @@ func TestHandleAction(t *testing.T) {
 }
 
 func setState(statejson string) {
-	os.WriteFile(os.Getenv("TMP")+"\\testvalheimstate.json", []byte(statejson), 0777)
+	os.WriteFile("testvalheimstate.json", []byte(statejson), 0777)
 }

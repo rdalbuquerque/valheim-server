@@ -79,7 +79,6 @@ data "template_file" "cloud_init" {
     valheim_worlds_storage_account_name = azurerm_storage_account.world.name
     valheim_worlds_storage_account_key  = azurerm_storage_account.world.primary_access_key
     world_share_name                    = azurerm_storage_share.world.name
-    server_share_name                   = azurerm_storage_share.world.name
     server_name                         = var.server_name
     world_name                          = var.world_name
     server_pass                         = random_string.valheim_password.result
@@ -108,9 +107,9 @@ resource "azurerm_linux_virtual_machine_scale_set" "compute" {
   }
 
   source_image_reference {
-    publisher = "canonical"
-    offer     = "ubuntu-24_04-lts"
-    sku       = "server"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -149,6 +148,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "compute" {
   depends_on = [azurerm_subnet_network_security_group_association.subnet_nsg_assoc]
 }
 
-
+output "cloud_init" {
+  value = data.template_file.cloud_init.rendered
+}
 
 

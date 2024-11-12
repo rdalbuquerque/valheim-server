@@ -2,7 +2,7 @@ package aztclient
 
 import (
 	"godin/pkg/statestorageinterface"
-	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -31,7 +31,15 @@ func (ts *TestState) GetOnlinePlayers() []string {
 	return []string{}
 }
 
-func (ts *TestState) AddOnlinePlayer(player string) {}
+func (ts *TestState) AddOnlinePlayer(player string) {
+	if len(ts.Attributes.OnlinePlayers) == 0 {
+		ts.Attributes.OnlinePlayers = player
+	} else {
+		players := strings.Split(ts.Attributes.OnlinePlayers, ",")
+		players = append(players, player)
+		ts.Attributes.OnlinePlayers = strings.Join(players, ",")
+	}
+}
 
 func (ts *TestState) RemoveOnlinePlayer(player string) {}
 
@@ -68,6 +76,7 @@ func TestGenEntity(t *testing.T) {
 	state.SetIp("4.201.60.16")
 	state.SetStatus("stopped")
 	state.AddOnlinePlayer("player1")
+	state.AddOnlinePlayer("player2")
 
 	entity := tc.(*TableClient).genEntity(state.GetAttributes())
 	expectedPropertiesLength := 3
@@ -81,12 +90,8 @@ func TestGenEntity(t *testing.T) {
 	}
 	expectedIp := "4.201.60.16"
 	expectedStatus := "stopped"
-	expectedOnlinePlayers := []string{"player1"}
-	actualOnlinePlayers, ok := entity.Properties["online_players"].([]string)
-	if !ok {
-		t.Errorf("something is wrong with online_players type")
-	}
-	if entity.Properties["ip"] != expectedIp || entity.Properties["status"] != expectedStatus || !reflect.DeepEqual(actualOnlinePlayers, expectedOnlinePlayers) {
+	expectedOnlinePlayers := "player1,player2"
+	if entity.Properties["ip"] != expectedIp || entity.Properties["status"] != expectedStatus || entity.Properties["online_players"] != expectedOnlinePlayers {
 		t.Errorf("expected ip, status and online_players to be %s, %s and %v but they were %s, %s and %v",
 			expectedIp, expectedStatus, expectedOnlinePlayers, entity.Properties["ip"], entity.Properties["status"], entity.Properties["online_players"],
 		)
