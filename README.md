@@ -46,9 +46,13 @@ For this, I wrote a [script in cloud-init.yml](infra/cloud-init.yml) that monito
 
 ```mermaid
 flowchart LR;
-    Listening --> EventsQueue
-    PlayerConnected --> EventsQueue
-    PlayerDisconnected --> EventsQueue
+    subgraph vmlogs [container logs]
+        direction LR
+        listening...
+        playerconn[player connected...]
+        playerdisconn[player disconnected...]
+    end
+    vmlogs --> EventsQueue
     EventsQueue o--o reactionsFunction
     reactionsFunction --> discord
 ```
