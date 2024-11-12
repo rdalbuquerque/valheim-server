@@ -68,7 +68,7 @@ When I noticed it was running on Windows, I switched it over to a Linux app, exp
 
 After this trial and error, I decided to set up a more controlled test. I deployed all three setups—Python on Linux, Go on Windows, and Go on Linux—and used a Postman monitor to send a request to each function every hour. This way, I could see how each configuration handled cold starts over time.
 
-here are the results:
+here are the results in seconds:
 |            | Average | P95   | P99   |
 |------------|---------|-------|-------|
 | Python     | 10.43   | 12.02 | 13.35 |
