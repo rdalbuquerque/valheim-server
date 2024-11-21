@@ -13,6 +13,7 @@ __azurite_db*__.json
 .env
 register_commands.sh
 
+.test
 **/__debug*
 debuggodin.exe
 *.pem

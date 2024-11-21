@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"time"
@@ -18,6 +17,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/data/aztables"
 	"github.com/iancoleman/strcase"
 )
+
+const logprefix = "aztclient"
 
 type WriteableEntity struct {
 	Entity aztables.Entity
@@ -47,7 +48,7 @@ func NewTableClient(tableName, partitionKey, rowKey string) (TableClientInterfac
 	// Create a ServiceClient
 	serviceClient, err := aztables.NewServiceClientFromConnectionString(connString, nil)
 	if err != nil {
-		log.Printf("failed to create service client: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("failed to create service client: %v", err))
 		return nil, fmt.Errorf("failed to create service client: %v", err)
 	}
 
@@ -83,7 +84,7 @@ func (tc *TableClient) Read(columns ...string) (map[string]interface{}, error) {
 	}
 	etag := entity.ETag
 	tc.etag = &etag
-	log.Printf("Read entity: %s", string(entity.Value))
+	utils.Log(logprefix, fmt.Sprintf("Read entity: %s", string(entity.Value)))
 
 	state := make(map[string]interface{})
 	err = json.Unmarshal(entity.Value, &state)
@@ -132,7 +133,7 @@ func (tc *TableClient) Write(state statestorageinterface.StateAttributes) error 
 	if err != nil {
 		return err
 	}
-	log.Printf("Updating entity with: %s", string(entityBytes))
+	fmt.Printf("Updating entity with: %s", string(entityBytes))
 	updatedEntity, err := tc.client.UpdateEntity(context.TODO(), entityBytes, &updateOpts)
 	tc.etag = &updatedEntity.ETag
 	if err != nil {

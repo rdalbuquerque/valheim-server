@@ -8,7 +8,7 @@
 
 
 # About
-This repository contains the [infrastructure code](infra/) and [discord bot code](discordbot/) for the Valheim game server.\
+[This repository](https://github.com/rdalbuquerque/valheim-server) contains the [infrastructure code](https://github.com/rdalbuquerque/valheim-server/tree/main/infra) and [discord bot code](https://github.com/rdalbuquerque/valheim-server/tree/main/discordbot) for the Valheim game server.\
 The idea here is to provision a server as cheap as possible, so I'm using a VMSS with spot instances and local OS disk. For the game server data, I'm using a mounted file share.\
 Also, to further decrease cost, I wrote an event-driven slash-command discord bot on Azure Function so players can start and stop the server from discord.
 

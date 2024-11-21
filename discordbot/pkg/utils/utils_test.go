@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"log"
+	"fmt"
 	"testing"
 )
 
@@ -11,5 +11,5 @@ func TestExtractSteamId(t *testing.T) {
 	if err != nil {
 		t.Errorf("error extracting steam id: %v", err)
 	}
-	log.Println(id)
+	fmt.Println(id)
 }

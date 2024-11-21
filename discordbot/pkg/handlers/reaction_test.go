@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"godin/pkg/aztclient"
 	"godin/pkg/godinerrors"
 	"godin/pkg/statestorageinterface"
 	"godin/pkg/utils"
-	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"slices"
@@ -99,7 +100,7 @@ type TestDiscordClient struct {
 
 func (tdc *TestDiscordClient) SendMessage(msg string) error {
 	tdc.messagesSent = append(tdc.messagesSent, msg)
-	log.Println(msg)
+	utils.Log(logprefix, msg)
 	return nil
 }
 
@@ -139,12 +140,12 @@ func (ttc TestTableClient) Write(state statestorageinterface.StateAttributes) er
 	if err != nil {
 		return err
 	}
-	log.Printf("saving state: %s", statebytes)
+	utils.Log(logprefix, fmt.Sprintf("saving state: %s", statebytes))
 	err = os.WriteFile(statefile, statebytes, 0777)
 	if err != nil {
 		return err
 	}
-	log.Printf("saved state to: %s", statefile)
+	utils.Log(logprefix, fmt.Sprintf("saved state to: %s", statefile))
 	return nil
 }
 
@@ -287,4 +288,26 @@ func TestHandleAction(t *testing.T) {
 
 func setState(statejson string) {
 	os.WriteFile("testvalheimstate.json", []byte(statejson), 0777)
+}
+
+type TestResponseWriter struct {
+	Response []byte
+}
+
+func (trw *TestResponseWriter) Write(resp []byte) (int, error) {
+	trw.Response = resp
+	return 0, nil
+}
+func (trw TestResponseWriter) Header() http.Header {
+	return http.Header{}
+}
+func (trw TestResponseWriter) WriteHeader(statusCode int) {}
+
+func TestSetInternalServerErrorWithLogs(t *testing.T) {
+	testWriter := TestResponseWriter{}
+	testerr := "this is a test error"
+	setInternalServerErrorWithLogs(&testWriter, fmt.Errorf(testerr))
+	if string(testWriter.Response) != testerr {
+		t.Errorf("expected response to be equal to %s but was %s", testWriter.Response, testerr)
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"godin/pkg/utils"
-	"log"
 	"os"
 	"time"
 
@@ -14,6 +13,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute"
 	"github.com/melbahja/goph"
 )
+
+const logprefix = "vmssclient"
 
 type VmssClientInterface interface {
 	ScaleUp() error
@@ -30,12 +31,12 @@ type VmssClient struct {
 func NewVmssClient(resourcegroupname, vmssname, subscriptionid, ip string) (VmssClientInterface, error) {
 	cred, err := azidentity.NewManagedIdentityCredential(nil)
 	if err != nil {
-		log.Printf("error creating azure cred: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("error creating azure cred: %v", err))
 		return nil, fmt.Errorf("error creating azure cred: %v", err)
 	}
 	client, err := armcompute.NewVirtualMachineScaleSetsClient(subscriptionid, cred, nil)
 	if err != nil {
-		log.Printf("error creating vmss client: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("error creating vmss client: %v", err))
 		return nil, fmt.Errorf("error creating vmss client: %v", err)
 	}
 	return &VmssClient{
@@ -75,6 +76,7 @@ func (vc *VmssClient) ScaleUp() error {
 	pudOpts := runtime.PollUntilDoneOptions{
 		Frequency: 5 * time.Second,
 	}
+	utils.Log(logprefix, "Polling VMSS...")
 	_, err = poller.PollUntilDone(context.TODO(), &pudOpts)
 	if err != nil {
 		return err
@@ -113,7 +115,7 @@ func (vc *VmssClient) ScaleDown() error {
 		return nil
 	}
 
-	err = vc.execInVm("sudo docker stop valheim-server")
+	err = vc.execInVm("sudo docker stop -t 120 valheim-server")
 	if err != nil {
 		return fmt.Errorf("failed to stop valheim container: %v", err)
 	}

@@ -7,14 +7,16 @@ import (
 	"godin/pkg/disclient"
 	"godin/pkg/statestorageinterface"
 	"godin/pkg/steamapi"
+	"godin/pkg/utils"
 	"godin/pkg/valheimstate"
 	"godin/pkg/vmssclient"
-	"log"
 	"net"
 	"net/http"
 	"os"
 	"strings"
 )
+
+const logprefix = "handlers"
 
 type invokeResponse struct {
 	Logs []string
@@ -28,6 +30,7 @@ type triggerData struct {
 
 func setInternalServerErrorWithLogs(w http.ResponseWriter, handlerErr error) {
 	invokeResponse := invokeResponse{Logs: []string{handlerErr.Error()}}
+	utils.Log(logprefix, handlerErr)
 	js, err := json.Marshal(invokeResponse)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -71,7 +74,7 @@ func ReactionHandler(w http.ResponseWriter, r *http.Request) {
 	ah := newActionHandler(discordclient, vmssclient, steamclient, state)
 
 	if err := ah.handleAction(strings.Trim(triggerData.Data.Action, "\"")); err != nil {
-		setInternalServerErrorWithLogs(w, fmt.Errorf("cought error: %v", err))
+		setInternalServerErrorWithLogs(w, fmt.Errorf("caught error: %v", err))
 		return
 	}
 
@@ -144,7 +147,7 @@ func (ah *actionHandler) handleAction(action string) error {
 			return err
 		}
 	} else if net.ParseIP(action) != nil {
-		log.Printf("IP Address: %s", action)
+		utils.Log(logprefix, fmt.Sprintf("IP Address: %s", action))
 		if err := ah.discordClient.SendMessage(fmt.Sprintf("Public IP address: `%s`", action)); err != nil {
 			return err
 		}

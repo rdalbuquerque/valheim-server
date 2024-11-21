@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"godin/pkg/azqclient"
+	"godin/pkg/utils"
 	"io"
-	"log"
 	"net/http"
 	"os"
 )
@@ -82,7 +82,7 @@ func InteractionHandler(w http.ResponseWriter, r *http.Request) {
 	var interaction Interaction
 	err := json.NewDecoder(r.Body).Decode(&interaction)
 	if err != nil {
-		log.Printf("Error decoding JSON: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("Error decoding JSON: %v", err))
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
@@ -92,24 +92,24 @@ func InteractionHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{}
 	switch interaction.Type {
 	case InteractionPing:
-		log.Println("Received ping validation")
+		utils.Log(logprefix, "Received ping validation")
 		response = map[string]interface{}{
 			"type": ResponsePong,
 		}
 	case InteractionCommand:
-		log.Printf("Received command: %s", interaction.Data.Name)
+		utils.Log(logprefix, fmt.Sprintf("Received command: %s", interaction.Data.Name))
 		switch interaction.Data.Name {
 		case "ping":
 			response = responseChannelMsg("Pong!")
 		case "start", "stop":
 			azqclient, err := azqclient.NewQueueClient("events")
 			if err != nil {
-				log.Printf("Error creating queue client: %v", err)
+				utils.Log(logprefix, fmt.Sprintf("Error creating queue client: %v", err))
 				http.Error(w, fmt.Sprintf("Error creating queue client: %v", err), http.StatusInternalServerError)
 				return
 			}
 			if err = azqclient.EnqueueMessage(interaction.Data.Name); err != nil {
-				log.Printf("Error enqueuing message: %v", err)
+				utils.Log(logprefix, fmt.Sprintf("Error enqueuing message: %v", err))
 				http.Error(w, fmt.Sprintf("Error enqueuing message: %v", err), http.StatusInternalServerError)
 				response = responseChannelMsg("Failed to queue the action")
 				break
@@ -124,7 +124,7 @@ func InteractionHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
-		log.Printf("Error marshalling JSON: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("Error marshalling JSON: %v", err))
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

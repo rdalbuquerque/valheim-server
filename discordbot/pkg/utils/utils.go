@@ -39,3 +39,7 @@ func ExtractSteamId(action string) (string, error) {
 	}
 	return string(steamidbytes[0][2]), nil
 }
+
+func Log(prefix, msg any) {
+	fmt.Printf("%s - %v\n", prefix, msg)
+}

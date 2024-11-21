@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"godin/pkg/handlers"
 	"log"
 	"net/http"
@@ -15,6 +16,6 @@ func main() {
 	if val, ok := os.LookupEnv("FUNCTIONS_CUSTOMHANDLER_PORT"); ok {
 		listenAddr = ":" + val
 	}
-	log.Printf("Listening on %s...", listenAddr)
+	fmt.Printf("Listening on %s...", listenAddr)
 	log.Fatal(http.ListenAndServe(listenAddr, mux))
 }

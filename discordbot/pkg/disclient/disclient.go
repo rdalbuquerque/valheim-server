@@ -2,10 +2,12 @@ package disclient
 
 import (
 	"fmt"
-	"log"
+	"godin/pkg/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
+
+const logprefix = "disclient"
 
 type DiscordClientInterface interface {
 	SendMessage(msg string) error
@@ -19,7 +21,7 @@ type DiscordClient struct {
 func NewDiscordClient(bottoken, channelid string) (DiscordClientInterface, error) {
 	discord, err := discordgo.New("Bot " + bottoken)
 	if err != nil {
-		log.Printf("error creating discord client: %v", err)
+		utils.Log(logprefix, fmt.Sprintf("error creating discord client: %v", err))
 		return nil, fmt.Errorf("error creating discord client: %v", err)
 	}
 	return &DiscordClient{

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"godin/pkg/utils"
 	"io"
-	"log"
 	"net/http"
 )
+
+const logprefix = "steamapi"
 
 type ClientInterface interface {
 	GetUserRealName(userid string) (string, error)
@@ -54,7 +55,7 @@ func (c Client) GetUserRealName(action string) (string, error) {
 
 	var steamresp SteamResponse
 	respBody, err := io.ReadAll(resp.Body)
-	log.Printf("response body: %s", respBody)
+	utils.Log(logprefix, fmt.Sprintf("response body: %s", respBody))
 	if err != nil {
 		return "", fmt.Errorf("error reading body: %v", err)
 	}

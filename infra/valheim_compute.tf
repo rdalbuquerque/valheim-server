@@ -92,7 +92,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "compute" {
   name                = "valheim-server-vmss"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  sku                 = "Standard_D2as_v4"
+  sku                 = "Standard_F4s_v2"
   instances           = 0
   admin_username      = "azureuser"
 
